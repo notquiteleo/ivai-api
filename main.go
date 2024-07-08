@@ -1,60 +1,100 @@
 package main
 
 import (
-	"encoding/json"
+	"bytes"
+	"fmt"
+	"io/ioutil"
+	"ivai-api/apis"
+	"ivai-api/models"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
+	"os"
+	"os/exec"
 )
 
-   type User struct {
-       ID    int    `json:"id"`
-       Name  string `json:"name"`
-       Email string `json:"email"`
-   }
+func main() {
+	// 初始化数据库连接
+	err := models.InitDB()
+	if err != nil {
+		panic(err)
+	}
 
-   var (
-       DB *sqlx.DB
-   )
+	// testTransferPNG()
 
-   func main() {
-       // 初始化数据库连接
-       err := initDB()
-       if err != nil {
-           panic(err)
-       }
+	// testRenderTemplate()
 
-       r := chi.NewRouter()
-       r.Get("/users", handleUsers)
+	http.ListenAndServe(":8080", apis.Router())
+}
 
-       http.ListenAndServe(":8080", r)
-   }
+// func testRenderTemplate() {
+// 	templateID := 1
 
-   func initDB() error {
-       var err error
-       DB, err = sqlx.Open("mysql", "user:password@tcp(localhost:3306)/mydb")
-       if err != nil {
-           return err
-       }
-       return nil
-   }
+// 	// 获取模板和模块
+// 	resume, err := getTemplate(db, templateID)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
 
-   func handleUsers(w http.ResponseWriter, r *http.Request) {
-       var users []User
-       err := queryAllUsers(&users)
-       if err != nil {
-           http.Error(w, err.Error(), http.StatusInternalServerError)
-           return
-       }
+// 	// 渲染简历
+// 	htmlContent, err := renderResume(resume)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
 
-       json.NewEncoder(w).Encode(users)
-   }
+// 	fmt.Println(htmlContent)
+// }
 
-	 func queryAllUsers(users *[]User) error {
-    // Implement the database query to populate the users slice
-    // Example query: SELECT * FROM users
-    query := "SELECT * FROM users"
-    return DB.Select(users, query)
+// func renderResume(resume *models.Resume) (string, error) {
+// 	t, err := template.ParseFiles("resumeTemplate.html")
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	var tpl bytes.Buffer
+// 	if err := t.Execute(&tpl, resume); err != nil {
+// 		return "", err
+// 	}
+
+// 	return tpl.String(), nil
+// }
+
+func testTransferPNG() {
+	htmlContent := `
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<title>My Resume</title>
+		</head>
+		<body>
+			<h1>John Doe</h1>
+			<p>Software Developer at Example Corp</p>
+			<!-- 更多简历内容 -->
+		</body>
+		</html>
+	`
+	tempFile, err := ioutil.TempFile("", "resume-*.html")
+	if err != nil {
+		fmt.Println("Error creating temp file:", err)
+		return
+	}
+	defer os.Remove(tempFile.Name()) // 确保临时文件被删除
+
+	_, err = tempFile.Write([]byte(htmlContent))
+	if err != nil {
+		fmt.Println("Error writing to temp file:", err)
+		return
+	}
+	tempFile.Close()
+
+	// 调用wkhtmltoimage
+	cmd := exec.Command("wkhtmltoimage", tempFile.Name(), "output.png")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println("Error running wkhtmltoimage:", err)
+		return
+	}
+
+	fmt.Println("Image created successfully.")
+
 }

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{.TemplateName}} - Resume</title>
+  <style>
+    /* Add your CSS styles here */
+  </style>
+</head>
+<body>
+  {{range .Modules}}
+    <div id="{{.ModuleName}}" class="module">
+      <h2>{{.ModuleName}}</h2>
+      {{.ModuleHTML}}
+    </div>
+  {{end}}
+</body>
+</html>
