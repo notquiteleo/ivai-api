@@ -12,7 +12,7 @@ func Router() *chi.Mux {
 
 	r.Get("/api/templates/filters", GetTemplateFilters())
 	r.Get("/api/templates", GetTemplates())
-	// r.Delete("/api/resumes/{id}", DeleteResume())
+	r.Delete("/api/resumes/{id}", DeleteResume())
 
 	return r
 }

@@ -3,9 +3,9 @@ package models
 type Templates struct {
 	ID           int    `json:"code"`
 	Name         string `json:"name"`
-	Description  int    `json:"-"`
+	Description  string `json:"-"`
 	TemplateType int    `json:"-"`
-	PreviewURL   int    `json:"preview_url"`
+	PreviewURL   string `json:"preview_url"`
 }
 
 func GetTemplates(templateType int64) ([]*Templates, error) {
