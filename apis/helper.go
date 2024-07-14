@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type Response struct {
@@ -20,8 +23,6 @@ func RespondWith(w http.ResponseWriter, r *http.Request, route string, data inte
 		RespondWithError(w, r, route, err, http.StatusInternalServerError)
 		return
 	}
-
-	// IncrementRequestsTotal(r.Method, route, http.StatusOK)
 }
 
 func RespondWithError(w http.ResponseWriter, r *http.Request, route string, err error, responseCode int) {
@@ -43,11 +44,26 @@ func RespondWithError(w http.ResponseWriter, r *http.Request, route string, err 
 	}
 
 	_ = json.NewEncoder(w).Encode(resp) //nolint:errchkjson
-
-	// IncrementRequestsTotal(r.Method, route, responseCode)
 }
 
-// TODO prometheus
-// func IncrementRequestsTotal(method, route string, responseCode int) {
-// 	MetricsRequestsTotal.With(prometheus.Labels{"code": strconv.Itoa(responseCode), "method": method, "route": route}).Inc()
-// }
+var jwtKey = []byte("your_secret_key")
+
+type Claims struct {
+	UserID int64 `json:"user_id"`
+	jwt.StandardClaims
+}
+
+func GenerateToken(userID int64) (string, error) {
+	expirationTime := time.Now().Add(24 * time.Hour) // 设置令牌有效期为24小时
+	claims := &Claims{
+			UserID: userID,
+			StandardClaims: jwt.StandardClaims{
+					ExpiresAt: expirationTime.Unix(),
+			},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+
+	return tokenString, err
+}
