@@ -1,9 +1,12 @@
 package apis
 
 import (
+	"fmt"
 	"ivai-api/models"
 	"net/http"
 	"time"
+
+	"ivai-api/middlewares/jwt"
 )
 
 func VerityCode() http.HandlerFunc {
@@ -109,8 +112,7 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-
-		_, err = GenerateToken(int64(user.ID))
+		token, err := jwt.GenerateToken(fmt.Sprintf("%d", user.ID))
 		if err != nil {
 			RespondWith(w, r, route, Response{
 				Success: false,
@@ -121,6 +123,9 @@ func MobileLogin() http.HandlerFunc {
 
 		resp := Response{
 			Success: true,
+			Data: map[string]string{
+				"token": token,
+			},
 		}
 
 		RespondWith(w, r, route, resp)

@@ -3,6 +3,7 @@ package apis
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"ivai-api/middlewares/jwt"
 )
 
 func Router() *chi.Mux {
@@ -15,7 +16,7 @@ func Router() *chi.Mux {
 	r.Get("/api/users/mobile_login", MobileLogin())
 	r.Get("/api/users/wx_login", WxLogin())
 
-	r.Get("/api/templates/filters", GetTemplateFilters())
+	r.Get("/api/templates/filters", jwt.JWTMiddleware(GetTemplateFilters()))
 	r.Get("/api/templates", GetTemplates())
 
 	r.Delete("/api/resumes/{id}", DeleteResume())
