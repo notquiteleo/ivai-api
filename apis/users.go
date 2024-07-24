@@ -39,10 +39,12 @@ func VerityCode() http.HandlerFunc {
 
 		// TODO 短信服务api
 		verityCode := "123456"
+		now := time.Now()
 		err = models.CreateLog(&models.UserLogs{
 			UserID:    user.ID,
 			Content:   verityCode,
-			CreatedAt: time.Now(),
+			CreatedAt: now,
+			Expired_at: now.Add(1 * time.Hour),
 			Action:    models.UserLogMobileLogin,
 		})
 		if err != nil {
@@ -112,7 +114,7 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-		log, err := models.GetLatestLogByContent(user.ID, req.VerityCode)
+		log, err := models.GetLatestValidLogByContent(user.ID, req.VerityCode)
 		if err != nil {
 			RespondWith(w, r, route, Response{
 				Success: false,
@@ -121,7 +123,8 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-		if time.Now().Sub(log.CreatedAt) > 5*time.Minute {
+		// 验证码是否过期
+		if log != nil {
 			RespondWith(w, r, route, Response{
 				Success: false,
 				Message: "verity code is expired",
