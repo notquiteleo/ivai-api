@@ -18,7 +18,7 @@ type Users struct {
 
 func GetUserByMobile(mobile string) (*Users, error) {
 	var user *Users
-	err := DB.Where("mobile = ?", mobile).First(&Users{}).Error
+	err := DB.Where("mobile = ?", mobile).First(&user).Error
 	return user, err
 }
 
@@ -27,6 +27,10 @@ func FindOrCreateUser(item *Users) (*Users, error) {
 	err := DB.Where("mobile = ?", item.Mobile).First(&user).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = DB.Create(&item).Error
+		if err != nil {
+			return nil, err
+		}
+		return item, nil
 	}
-	return user, err
+	return user, nil
 }

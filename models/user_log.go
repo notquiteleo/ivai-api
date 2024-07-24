@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type UserLogs struct {
 	ID        int       `json:"id"`

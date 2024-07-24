@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"github.com/gofrs/uuid"
 )
 
 type Response struct {
-	Success bool
-	Message string
-	Data    any
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    any    `json:"data"`
 }
 
 func RespondWith(w http.ResponseWriter, r *http.Request, route string, data interface{}) {
@@ -41,4 +43,9 @@ func RespondWithError(w http.ResponseWriter, r *http.Request, route string, err 
 	}
 
 	_ = json.NewEncoder(w).Encode(resp) //nolint:errchkjson
+}
+
+func GenerateUUID() string {
+	uid, _ := uuid.NewV4()
+	return uid.String()
 }

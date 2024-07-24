@@ -1,7 +1,9 @@
 package apis
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"ivai-api/models"
 	"net/http"
 	"time"
@@ -23,7 +25,9 @@ func VerityCode() http.HandlerFunc {
 		}
 
 		user, err := models.FindOrCreateUser(&models.Users{
+			UID:    GenerateUUID(),
 			Mobile: mobile,
+			Name:   mobile,
 		})
 		if err != nil {
 			RespondWith(w, r, route, Response{
@@ -58,12 +62,31 @@ func VerityCode() http.HandlerFunc {
 	}
 }
 
+type MobileLoginRequest struct {
+	Mobile     string `json:"mobile"`
+	VerityCode string `json:"verity_code"`
+}
+
 func MobileLogin() http.HandlerFunc {
 	route := "/api/users/mobile_login"
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		mobile := r.URL.Query().Get("mobile")
-		if mobile == "" {
+		// TODO get body from post api
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Error reading request body", http.StatusInternalServerError)
+			return
+		}
+		defer r.Body.Close()
+
+		var req MobileLoginRequest
+		if err := json.Unmarshal(body, &req); err != nil {
+			http.Error(w, "Error parsing request body", http.StatusBadRequest)
+			return
+		}
+
+		// mobile := r.URL.Query().Get("mobile")
+		if req.Mobile == "" {
 			RespondWith(w, r, route, Response{
 				Success: false,
 				Message: "mobile is required",
@@ -71,8 +94,8 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-		verityCode := r.URL.Query().Get("verity_code")
-		if verityCode == "" {
+		// verityCode := r.URL.Query().Get("verity_code")
+		if req.VerityCode == "" {
 			RespondWith(w, r, route, Response{
 				Success: false,
 				Message: "verity_code is required",
@@ -80,7 +103,7 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-		user, err := models.GetUserByMobile(mobile)
+		user, err := models.GetUserByMobile(req.Mobile)
 		if err != nil {
 			RespondWith(w, r, route, Response{
 				Success: false,
@@ -89,7 +112,7 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-		log, err := models.GetLatestLogByContent(user.ID, verityCode)
+		log, err := models.GetLatestLogByContent(user.ID, req.VerityCode)
 		if err != nil {
 			RespondWith(w, r, route, Response{
 				Success: false,
@@ -97,6 +120,7 @@ func MobileLogin() http.HandlerFunc {
 			})
 			return
 		}
+
 		if time.Now().Sub(log.CreatedAt) > 5*time.Minute {
 			RespondWith(w, r, route, Response{
 				Success: false,
@@ -104,7 +128,8 @@ func MobileLogin() http.HandlerFunc {
 			})
 			return
 		}
-		if log.Content != verityCode {
+
+		if log.Content != req.VerityCode {
 			RespondWith(w, r, route, Response{
 				Success: false,
 				Message: "verity code is incorrect",

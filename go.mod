@@ -15,4 +15,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 )
 
-require github.com/golang-jwt/jwt/v4 v4.5.0
+require (
+	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/golang-jwt/jwt/v4 v4.5.0
+)
