@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+
+	"text/template"
 )
 
 func main() {
@@ -20,42 +22,10 @@ func main() {
 
 	// testTransferPNG()
 
-	// testRenderTemplate()
+	testRenderTemplate()
 
 	http.ListenAndServe(":8080", apis.Router())
 }
-
-// func testRenderTemplate() {
-// 	templateID := 1
-
-// 	// 获取模板和模块
-// 	resume, err := getTemplate(db, templateID)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	// 渲染简历
-// 	htmlContent, err := renderResume(resume)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	fmt.Println(htmlContent)
-// }
-
-// func renderResume(resume *models.Resume) (string, error) {
-// 	t, err := template.ParseFiles("resumeTemplate.html")
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	var tpl bytes.Buffer
-// 	if err := t.Execute(&tpl, resume); err != nil {
-// 		return "", err
-// 	}
-
-// 	return tpl.String(), nil
-// }
 
 func testTransferPNG() {
 	htmlContent := `
@@ -96,5 +66,40 @@ func testTransferPNG() {
 	}
 
 	fmt.Println("Image created successfully.")
+}
 
+func testRenderTemplate() {
+	// 假设从数据库获取了module_html
+	personalInfoTemplate := `<div class="personal-info">
+			<h1>{{ .Name }}</h1>
+			<p>Phone: {{ .Phone }}</p>
+			<p>Email: {{ .Email }}</p>
+	</div>`
+
+	// 定义数据
+	personalInfoData := struct {
+		Name  string
+		Phone string
+		Email string
+	}{
+		Name:  "John Doe",
+		Phone: "123-456-7890",
+		Email: "john.doe@example.com",
+	}
+
+	// 解析模板
+	tmpl, err := template.New("personalInfo").Parse(personalInfoTemplate)
+	if err != nil {
+		panic(err)
+	}
+
+	// 渲染模板
+	var output bytes.Buffer
+	err = tmpl.Execute(&output, personalInfoData)
+	if err != nil {
+		panic(err)
+	}
+
+	// 输出渲染后的HTML
+	fmt.Println(output.String())
 }
