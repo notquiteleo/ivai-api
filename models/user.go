@@ -34,3 +34,9 @@ func FindOrCreateUser(item *Users) (*Users, error) {
 	}
 	return user, nil
 }
+
+func GetUserByConditions(conditions map[string]interface{}) (*Users, error) {
+	var user *Users
+	err := DB.Where(conditions).First(&user).Error
+	return user, err
+}

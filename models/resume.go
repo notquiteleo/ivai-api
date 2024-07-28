@@ -11,3 +11,9 @@ type Resumes struct {
 	// resume_meta 是一个json字符串，存储简历的内容
 	ResumeMeta string    `gorm:"column:resume_meta" json:"resume_meta"`
 }
+
+func GetResumeByConditions(conditions map[string]interface{}) (*Resumes, error) {
+	var resume *Resumes
+	err := DB.Where(conditions).First(&resume).Error
+	return resume, err
+}

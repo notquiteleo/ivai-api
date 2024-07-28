@@ -2,7 +2,6 @@ package apis
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"ivai-api/models"
 	"net/http"
@@ -41,11 +40,11 @@ func VerityCode() http.HandlerFunc {
 		verityCode := "123456"
 		now := time.Now()
 		err = models.CreateLog(&models.UserLogs{
-			UserID:    user.ID,
-			Content:   verityCode,
-			CreatedAt: now,
+			UserID:     user.ID,
+			Content:    verityCode,
+			CreatedAt:  now,
 			Expired_at: now.Add(1 * time.Hour),
-			Action:    models.UserLogMobileLogin,
+			Action:     models.UserLogMobileLogin,
 		})
 		if err != nil {
 			RespondWith(w, r, route, Response{
@@ -73,7 +72,6 @@ func MobileLogin() http.HandlerFunc {
 	route := "/api/users/mobile_login"
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO get body from post api
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "Error reading request body", http.StatusInternalServerError)
@@ -87,7 +85,6 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-		// mobile := r.URL.Query().Get("mobile")
 		if req.Mobile == "" {
 			RespondWith(w, r, route, Response{
 				Success: false,
@@ -96,7 +93,6 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-		// verityCode := r.URL.Query().Get("verity_code")
 		if req.VerityCode == "" {
 			RespondWith(w, r, route, Response{
 				Success: false,
@@ -124,7 +120,7 @@ func MobileLogin() http.HandlerFunc {
 		}
 
 		// 验证码是否过期
-		if log != nil {
+		if log == nil {
 			RespondWith(w, r, route, Response{
 				Success: false,
 				Message: "verity code is expired",
@@ -140,7 +136,7 @@ func MobileLogin() http.HandlerFunc {
 			return
 		}
 
-		token, err := jwt.GenerateToken(fmt.Sprintf("%d", user.ID))
+		token, err := jwt.GenerateToken(string(user.ID))
 		if err != nil {
 			RespondWith(w, r, route, Response{
 				Success: false,
