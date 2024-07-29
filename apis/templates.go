@@ -24,6 +24,8 @@ func GetTemplates() http.HandlerFunc {
 			return
 		}
 
+		TestRenderSimpleTemplate(w,r)
+
 		RespondWith(w, r, route, Response{
 			Success: true,
 			Message: "OK",
@@ -31,7 +33,6 @@ func GetTemplates() http.HandlerFunc {
 		})
 	}
 }
-
 
 // create single template
 // 1. first, receive origin template from front end
